@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block js%}
+  {% for media in JsFiles %}
+    <script type="text/javascript" src='{% static media %}'></script>
+  {% endfor %}
+{% endblock  %}
+{% block tagbody %} onload="submit('form_delete')" {% endblock %}
+{% block corpo %}
+<form action="" method="post" id="form_delete">{% csrf_token %} 
+    {{ form.as_p }} 
+    <p>Wait...</p>
+<!--    <input type="submit" value="Confirm" /> -->
+</form>
+{% endblock %}
+
+

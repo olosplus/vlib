@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+{% load db_tags %}
+
+{% block corpo %}
+
+<body id="login">
+  <div class="container">
+
+    <div class="alert alert-danger" role="alert">
+      {% if form.errors %}
+        {{ form.non_field_errors }}
+      {% endif %}
+    </div>
+
+    <form class="form-signin" action="." method="post">
+      {% csrf_token %}
+      <center>
+        <h2 class="form-signin-heading">{{ p|get_info:"PROJECT_NAME" }}</h2>
+      </center>
+      <div class="form-group">
+        <center>{{ form.username }}</center>
+      </div>
+      <div class="form-group">
+        <center>{{ form.password }}</center>
+      </div>
+      <center>
+        <button class="btn btn-primary btn-lg btn-block">Logar</button>
+        <span><a href="#">Precisa de ajuda?</a></span>
+      </center>
+    </form>
+    <input type="button" onclick="funcao1()" value="Exibir Alert" />
+  </div> <!-- /container -->
+  <script src="{% static 'vendors/jquery-1.9.1.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.min.js' %}"></script>
+</body>
+
+{% endblock %}
+
+{% block rodape %}
+{% endblock %}

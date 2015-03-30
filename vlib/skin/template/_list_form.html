@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block js %}
+  {% for media in JsFiles %}
+    <script type="text/javascript" src='{% static media %}'></script>
+  {% endfor %}
+{% endblock %}
+
+{% block conteudo %}
+<div class="span9" id="content">
+  <div class="row-fluid">
+    <!-- block -->
+    <div class="block">
+      <div class="navbar navbar-inner block-header">
+        <div class="muted pull-left">{{ titulo }}</div>
+      </div>
+      <div class="block-content collapse in">
+        <div class="span12">
+          <ul>
+              {{grid | safe}}               
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!-- /block -->
+  </div>
+</div>
+{% endblock %}
+
+{% block css %}
+  {% for media in CssFiles %}
+     <link rel="stylesheet" style="text/css" href="{%  static  media %}" />
+  {% endfor %}  
+{% endblock %}

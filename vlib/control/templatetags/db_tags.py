@@ -1,0 +1,15 @@
+from django import template
+from django.core.urlresolvers import resolve
+from django.core.handlers.wsgi import WSGIRequest
+from control import config
+#from lib import ext_view
+
+register = template.Library()
+@register.assignment_tag(takes_context=True)
+def get_info_app_name(context, request):   
+    return resolve(request.get_full_path())
+
+@register.filter(name='get_info')
+def get_info(valor, info):
+    valor = getattr(config.Config, info)
+    return valor

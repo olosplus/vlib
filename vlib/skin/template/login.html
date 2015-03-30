@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+{% load i18n %}
+
+
+{% block corpo %}
+
+{% if form.errors %}
+  {{ form.non_field_errors }}
+{% endif %}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 col-md-offset-4">
+        <div class="login-panel panel panel-default">
+          <div class="panel-heading">
+            <center>
+              <h2>Contábil</h2>
+            </center>
+          </div>
+          <div class="panel-body">
+            <form class="form-signin" action="." method="post">
+            {% csrf_token %}
+              <div class="form-group">
+                <center>{{ form.username }}</center>
+              </div>
+              <div class="form-group">
+                <center>{{ form.password }}</center>
+              </div>
+              <center>
+                <button class="btn btn-primary btn-lg btn-block">Logar</button>
+              </center>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block rodape %}
+{% endblock %}

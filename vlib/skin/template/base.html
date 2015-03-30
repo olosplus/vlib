@@ -1,0 +1,97 @@
+{% load staticfiles %}
+{% load i18n %}
+
+
+{% load vtags_menu %}
+{% get_menu request as menu %}
+
+<!DOCTYPE html>
+<html >
+  <head>
+    {% block cabecalho %}
+      <title>Contábil</title>
+    {% endblock %}    
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="{% static 'components/bootstrap/dist/css/bootstrap.min.css' %}" type="text/css" media="screen">
+
+    <!-- MetisMenu CSS -->
+    <link rel="stylesheet" href="{% static 'components/metisMenu/dist/metisMenu.min.css' %}" type="text/css" media="screen">
+
+    <!-- Timeline CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/timeline.css' %}" type="text/css" media="screen">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'dist/css/sb-admin-2.css' %}" type="text/css" media="screen">
+
+    <!-- Morris Charts CSS -->
+    <link rel="stylesheet" href="{% static 'components/morrisjs/morris.css' %}" type="text/css" media="screen">
+
+    <!-- Custom Fonts -->
+    <link rel="stylesheet" href="{% static 'components/font-awesome/css/font-awesome.min.css' %}" type="text/css" media="screen">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}">
+    <link rel="stylesheet" style="text/css" href="{% static 'grid/grid.css' %}"> 
+    <!-- jQuery -->
+    <script src="{% static 'components/jquery/dist/jquery.min.js' %}"></script>
+
+    {% block css %}
+    {% endblock %}
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+<body {% block tagbody %} {%endblock%}>
+  {% block corpo %}
+    <div id="wrapper">
+      <!-- Navigation -->
+      <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">   
+        {% include 'bar_top.html' %}
+        <!-- /.navbar-top-links -->
+        {% include 'menu_lat.html' %}
+        <!-- /.navbar-static-side -->
+      </nav>
+      <!-- Page Content -->
+      <div id="page-wrapper">
+        <div class="container-fluid">
+          {% block conteudo %}
+          {% endblock %}
+        </div>
+        <!-- /.container-fluid -->
+      </div>    
+    </div>
+    <!-- /#page-wrapper -->
+    {% block js %}
+    {% endblock %}
+  {% endblock %}    
+
+    <!-- Grid Personalizado -->
+    <script src="{% static 'grid/grid.js' %}"></script>    
+
+    <script src="{% static 'components/raphael/raphael-min.js' %}"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{% static 'components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="{% static 'components/metisMenu/dist/metisMenu.min.js' %}"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="{% static 'dist/js/sb-admin-2.js' %}"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="{% static 'components/morrisjs/morris.min.js' %}"></script>
+    <script src="{% static 'js/morris-data.js' %}"></script>
+
+    <script type="text/javascript">
+        function submit(form){
+          document.getElementById(form).submit();     
+      }; 
+    </script>
+  </body>
+  {% block rodape %}
+  {% endblock %}
+</html>

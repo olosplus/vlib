@@ -1,0 +1,16 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load db_tags %}
+
+<div class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container">
+    <hr>
+    {% if not is_popup %}
+      <center>
+        <p class="navbar-text pull-center">Copyright &copy; 2015 {{ p|get_info:"PROJECT_NAME" }} - Desenvolvido por <a href="http://www.vmsis.com.br" target="_blank">VMSis</a>
+        </p>
+      </center>
+    {% endif %}
+  </div>
+</div>
+
