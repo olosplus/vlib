@@ -5,9 +5,12 @@ from django.utils.translation import ugettext as _
 from django.db.models.loading import get_model
 from django.apps import apps
 
+
 class Grid:
-    def __init__(self, model):
+    def __init__(self, model, parent_model = None, parent_pk_value = -1):
         self.model = model
+        self.parent_model = parent_model
+        self.parent_pk_value = parent_pk_value
 
     def convert_model_type_field_to_grid_type(self, model_type_field):
         if model_type_field in ("CharField", "FilePathField", "IPAddressField", "GenericIPAddressField"):
@@ -76,10 +79,14 @@ class Grid:
 
     def get_grid_columns_config(self, field_name, read_only = True):
         if read_only:
-            return {"type":"", "objects":"", "values":"" } 
+            return {"type":"", "objects":"", "values":"", "is_link_to_form" : False } 
         attr = self.get_model_attributes(field_name)
         column_type = attr[field_name]['grid-type']
         column_model = attr[field_name]['model']
+
+        if self.parent_model and column_model == self.parent_model:
+            return {"type":"", "objects":"", "values":"", "is_link_to_form" : True }             
+
         
         if column_model != None:
             query = column_model.objects.all()
@@ -87,12 +94,28 @@ class Grid:
             for q in query:
                 str_objects.append(str(q));
                 id_values.append(str(q.id))
-            return {"type":column_type, "objects":str_objects, "values":id_values }
+            return {"type":column_type, "objects":str_objects, "values":id_values, 
+                "is_link_to_form" : False}
         else:
-            return {"type":column_type, "objects":"", "values":"" }
+            return {"type":column_type, "objects":"", "values":"", 
+                "is_link_to_form" : False}
 
     def get_model_field_config(self, field_name, field_config):
         return getattr(self.model._meta.get_field(field_name), field_config)            
+    
+    def get_data(self, fields_to_display, dict_filter):        
+        if dict_filter == {}:
+            if self.parent_model != None:
+                for field in self.model._meta.fields:                  
+                    if self.get_grid_column_model(field.name) == self.parent_model:
+                        dic = {self.get_name_column_grid(field.name, type(field)) : 
+                            self.parent_pk_value }
+                        return self.model.objects.filter(**dic).values_list(*fields_to_display)     
+            else:
+                return self.model.objects.values_list(*fields_to_display)
+        else:
+            return self.model.objects.filter(**dict_filter).values_list(*fields_to_display)
+
 
     def get_js_grid(self, read_only = True, use_crud = False, display_fields = (),
         dict_filter = {}):        
@@ -104,6 +127,10 @@ class Grid:
         # get the fields declared on model
         fields_model = self.model._meta.fields
         fields_to_display = list(display_fields)
+        if self.parent_model:
+            parent_model_str = self.parent_model.__name__
+        else:
+            parent_model_str = str()
 
         url_update = str()
         url_delete = str()
@@ -121,12 +148,15 @@ class Grid:
             url_update = Urls.BaseUrlUpdate(CountPageBack = 1)
             url_delete = Urls.BaseUrlDelete()
             url_insert = Urls.BaseUrlInsert(CountPageBack = 1)
-        
+        link_to_form = ""
         #makes the loop on fields model's, creating the columns list's. if the field is "id", dont show
         for field in fields_model:
-                 
+                              
             grid_conf = self.get_grid_columns_config(field.name, read_only)
             
+            if grid_conf["is_link_to_form"]:
+                link_to_form = self.get_name_column_grid(field.name, type(field))
+
             if not display_fields :
 
                 if self.get_model_field_config(field.name, 'editable') == False:
@@ -172,10 +202,7 @@ class Grid:
             fields_to_display.append('id')
 
         # get the data
-        if dict_filter == {}:
-            registers = self.model.objects.values_list(*fields_to_display)
-        else:
-            registers = self.model.objects.filter(**dict_filter).values_list(*fields_to_display)
+        registers = self.get_data(fields_to_display = fields_to_display, dict_filter = dict_filter)
 
         #reset the integer variables
         columns_count = 0
@@ -209,15 +236,17 @@ class Grid:
         rows = rows[0 : len(rows) - 1] 
         
         return '{"columns":{%s}, "rows":{%s}, "bar":{%s}, "grid_key":"%s", "grid_mod" : "%s", '\
-            '"use_crud":"%s", "read_only":"%s", "url_insert":"%s", "url_update":"%s", "url_delete":"%s" }' % \
+            '"use_crud":"%s", "read_only":"%s", "url_insert":"%s", "url_update":"%s", "url_delete":"%s", \
+            "parent":"%s", "link_to_form":"%s" }' % \
             (columns, rows, bottom_bar, self.model.__module__, self.model.__name__, str(use_crud), 
-            str(read_only), url_insert, url_update, url_delete)
+            str(read_only), url_insert, url_update, url_delete, parent_model_str, link_to_form)
 
-    def grid_script(self, data):
-        script = '<div id="%s" class="grid table-responsive"></div>' % (self.model.__name__)
+    @staticmethod
+    def grid_script(data, model):
+        script = '<div id="div_%s" class="grid table-responsive"></div>' % (model.__name__)
         script += '<script type="text/javascript">'
         script += '$(document).ready(function(){'
-        script += 'Grid("%s",%s, true)' % (self.model.__name__, data)
+        script += 'Grid("div_%s",%s)' % (model.__name__, data)
         script += '});'
         script += '</script>'
         return script
@@ -225,12 +254,19 @@ class Grid:
     def grid_as_text(self, read_only = True, use_crud = False, display_fields = (), dict_filter = {}):   
         if read_only:
             return self.grid_script(self.get_js_grid(use_crud = use_crud, read_only = read_only, 
-                display_fields = display_fields, dict_filter = {}))
+                display_fields = display_fields, dict_filter = dict_filter), self.model)
         else:
             if hasattr(self.model._meta, 'child_models'):
                 child_models = self.model._meta.child_models
                 mod = None
-                for child_model in child_models:
+                script_grid = str()
+                for child_model in child_models:                    
                     mod = get_model(app_label = self.model._meta.app_label, model_name = child_model)
-
+                    GridDetalhe = Grid(mod, self.model, self.parent_pk_value)
+                    script_grid += self.grid_script(data = GridDetalhe.get_js_grid(use_crud = use_crud,
+                        read_only = read_only, display_fields = display_fields, dict_filter = dict_filter),
+                        model = mod)
+                return script_grid
+            else:
+                return ""
                 

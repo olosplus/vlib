@@ -1,7 +1,7 @@
 {% load staticfiles %}
 {% load i18n %}
 
-
+{% load db_tags %}
 {% load vtags_menu %}
 {% get_menu request as menu %}
 
@@ -9,8 +9,10 @@
 <html >
   <head>
     {% block cabecalho %}
-      <title>Contábil</title>
-    {% endblock %}    
+      <title>VMSis - {{ p|get_info:"PROJECT_NAME" }}</title>
+    {% endblock %}  
+    <link rel=”shortcut icon” href="{% static 'img/vmsis-icov.ico' %}" />
+
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="{% static 'components/bootstrap/dist/css/bootstrap.min.css' %}" type="text/css" media="screen">
 

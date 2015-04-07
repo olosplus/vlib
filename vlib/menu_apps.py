@@ -10,7 +10,7 @@ DIR = os.path.dirname(os.path.dirname(__file__))
 MAIN_APP = {'app': 'home', 'verbose_name': 'Home', 'view_name': 'home.views.index' }
 
 apps_on_menu = (
-    {'app': 'cadastro', 'verbose_name' : 'Cadastro', 'imgmenu':'fa fa-sitemap'},
+    {'app': 'cadastro', 'verbose_name' : 'Cadastro', 'imgmenu':'fa fa-cubes'},
     {'app': 'cadastro.almoxarifado', 'verbose_name' : 'Almoxarifado'},
     {'app': 'cadastro.cliente', 'verbose_name' : 'Cliente'},
     {'app': 'cadastro.contato', 'verbose_name' : 'Contato', 'visible': False},
@@ -18,15 +18,21 @@ apps_on_menu = (
     {'app': 'cadastro.fornecedor', 'verbose_name' : 'Fornecedor'},
     {'app': 'cadastro.localidade', 'verbose_name' : 'Localidades', },
     {'app': 'cadastro.localidade.bairro', 'verbose_name' : 'Bairro'},
-    {'app': 'cadastro.localidade.cidade', 'verbose_name' : 'Cidade'},
-    {'app': 'cadastro.localidade.estado', 'verbose_name' : 'Estado'},
+#    {'app': 'cadastro.localidade.cidade', 'verbose_name' : 'Cidade'},
+#    {'app': 'cadastro.localidade.endereco', 'verbose_name' : 'Endereço', 'visible': False},
+#    {'app': 'cadastro.localidade.estado', 'verbose_name' : 'Estado'},
     {'app': 'cadastro.localidade.pais', 'verbose_name' : 'Países'},
     {'app': 'cadastro.produto', 'verbose_name' : 'Produto'},
     {'app': 'cadastro.produto.item', 'verbose_name' : 'Produto'},
-    #{'app': 'cadastro.produto.localizacao', 'verbose_name' : 'Localização'},
+    {'app': 'cadastro.produto.localizacao', 'verbose_name' : 'Localização', 'visible': False},
     {'app': 'cadastro.produto.unimedida', 'verbose_name' : 'Unidade de Medida'},
     {'app': 'cadastro.unidade', 'verbose_name' : 'Unidade'},
     {'app': 'cadastro.funcionario', 'verbose_name' : 'Funcionário'},
+    {'app': 'parametro', 'verbose_name' : 'Parâmetro', 'imgmenu':'fa fa-gear'},
+    {'app': 'parametro.paramgeral', 'verbose_name' : 'Geral'},
+    {'app': 'parametro.paramunidade', 'verbose_name' : 'Unidade'},
+    {'app': 'parametro.personaliza', 'verbose_name' : 'Personalização'},
+    {'app': 'vatualiza', 'verbose_name' : 'Atualização', 'visible': False},
 )
 
 class MenuApps:       

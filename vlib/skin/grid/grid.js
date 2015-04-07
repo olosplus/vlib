@@ -28,6 +28,7 @@ function JoinToJson(key, value){
 
 
 function GetGridChange(idGrid, operation){
+  var line_separator = "<<LINE_SEPARATOR>>";
   if(operation === 'sel'){
     var list_tr = $( '#' + idGrid + ' tr[sel="' + true + '"]');
   }
@@ -53,7 +54,8 @@ function GetGridChange(idGrid, operation){
               str_row += JoinToJson(element.name, element.value);
             };  
             if(element.nodeName === "SELECT"){
-              str_row += JoinToJson(element.name, element.options[element.selectedIndex].value);
+              if (element.selectedIndex > -1)
+                str_row += JoinToJson(element.name, element.options[element.selectedIndex].value);
             };              
           };
         };
@@ -61,15 +63,15 @@ function GetGridChange(idGrid, operation){
     };  
     if (list_tr[tr].childElementCount  > 0) {
       str_row = str_row.substr(0, str_row.length - 1);
-      str_row += '}|';
-      if (str_row != '}|'){
+      str_row += '}' + line_separator + " ";
+      if (str_row != '}' + line_separator + " "){
         str_json += str_row;
       }
     };
   };
   str_json = str_json.substr(0, str_json.length - 1);
   
-  var grid = $("#" + idGrid);
+//  var grid = $("#" + idGrid);
   return str_json;  
 };
 function getAttrGrid(idGrid, attr){
@@ -77,8 +79,9 @@ function getAttrGrid(idGrid, attr){
   return grid.attr(attr)
 }
 function ParseGridToJson(idGrid){
-  return {rows_inserted : GetGridChange(idGrid, "inserted"), rows_updated : GetGridChange(idGrid, "updated"), 
-    model : getAttrGrid(idGrid,'mod'), module : getAttrGrid(idGrid,'module') };
+  return {rows_inserted : GetGridChange(idGrid, "inserted"), rows_updated : GetGridChange(idGrid, "updated"),    
+    model : getAttrGrid(idGrid,'mod'), module : getAttrGrid(idGrid,'module'), 
+    link_to_form : getAttrGrid(idGrid, 'link_to_form') };
 }
 
 function ParseGridToJsonDelete(idGrid){
@@ -86,7 +89,7 @@ function ParseGridToJsonDelete(idGrid){
     model : getAttrGrid(idGrid,'mod'), module : getAttrGrid(idGrid,'module') };
 }
 
-function InsertEmptyRow(columns, idGrid){
+function InsertEmptyRow(columns, idGrid, link_to_form){
     var html_input = "<input type='{{TYPE}}' value='{{VALOR}}' {{DISABLE}} {{STEP}} "+
       "class = 'gridtag' name = {{NAME}} onchange='SetChangesLine(this)'></input>";
     var type_input = "";
@@ -98,7 +101,7 @@ function InsertEmptyRow(columns, idGrid){
           if(columns[column].type === 'link'){
             continue;
           };
-          if (columns[column].name === "id"){
+          if ((columns[column].name === "id")||(columns[column].name === link_to_form)){
             html += "<td class='notvis'>";
           }
           else{
@@ -144,14 +147,15 @@ function InsertEmptyRow(columns, idGrid){
     $("#" + idGrid + "> tbody").append(html);
 };
 
-function InsertLineWithValue(row, columns, readonly){
+function InsertLineWithValue(row, columns, readonly, link_to_form){
   var html_input = "<input type='{{TYPE}}' value='{{VALOR}}' {{STEP}} class = 'gridtag' name = "+
     "{{NAME}}  onchange='SetChangesLine(this)'>"+
       "</input>";
   var type_input = "";
   var class_links = "";
   var events = "";
-   var index = 0;
+  var index = 0;
+
       html = "<tr>";
       if(readonly === "False"){
         html += "<td> <center><input type='checkbox' onchange='selectLine(this)'> "+
@@ -162,7 +166,7 @@ function InsertLineWithValue(row, columns, readonly){
           if ((columns[column].type === 'link')  && (readonly === "False")) {
             continue;
           };
-          if (columns[column].name === "id"){
+          if ((columns[column].name === "id") || (columns[column].name === link_to_form)) {
             html += "<td class = 'notvis'>";
           }
           else{
@@ -231,27 +235,24 @@ function InsertLineWithValue(row, columns, readonly){
     return html
 };
 
-function Grid(GridId, Data, editable) {
+function Grid(DivGridId, Data) {
 
-  var disable = "";
-
-  if (editable == false) {
-    disable = "readonly";
-  };
   var columns = Data.columns;
   var rows = Data.rows;
   var bar = Data.bar;
   var module =  Data.grid_key;
-  var array_module = module.split(".");
-  var grid_id = array_module[array_module.length - 2];
+//  var array_module = module.split(".");
+  var grid_id = Data.grid_mod;//array_module[array_module.length - 2];
   var model = Data.grid_mod;
   var use_crud = Data.use_crud;
   var readonly = Data.read_only;
   var url_insert = Data.url_insert;
   var url_update = Data.url_update;
   var url_delete = Data.url_delete;
-
-  var html = "<div class='grid'><table id='" + grid_id + "' "+
+  var parent = Data.parent;
+  var link_to_form = Data.link_to_form;
+  var html = "<div class='grid'><table id='" + grid_id + "' parent='"+ parent + "'" + 
+    "link_to_form='" + link_to_form + "'" +
     " class='tablegrid table table-bordered table-hover table-striped' module='"+ module + "' " +
     "mod='" + model + "'><thead class = 'header'> <tr>";
   if(readonly === "False"){
@@ -262,7 +263,7 @@ function Grid(GridId, Data, editable) {
       if ((columns[column].type === 'link')  && (readonly === "False")) {
         continue;
       };
-      if (columns[column].name === "id"){
+      if ((columns[column].name === "id")||(columns[column].name === link_to_form)){
         html += "<th class='notvis'>" + columns[column].label + "</th>";
       }
       else{
@@ -274,7 +275,7 @@ function Grid(GridId, Data, editable) {
   html += "<tbody>"
   for (row in rows) {
     if (rows.hasOwnProperty(row)) {
-      html += InsertLineWithValue(rows[row], columns, readonly)      
+      html += InsertLineWithValue(rows[row], columns, readonly, link_to_form)      
     };
   };
 
@@ -291,57 +292,89 @@ function Grid(GridId, Data, editable) {
   };
   if (readonly === "False"){
     html += "  <a href='#' class='fa fa-file-o' title='Adicionar'"+
-      "onclick='InsertEmptyRow("+ JSON.stringify(columns) + ",\""+ grid_id  +"\" )'>"+
+      "onclick='InsertEmptyRow("+ JSON.stringify(columns) + ",\""+ grid_id  +"\", \"" + link_to_form + "\" )'>"+
       "</a> | ";
 
     html += "  <a href='#' id='linkcancel' class='glyphicon glyphicon-floppy-remove' "+
       "onclick='RemoveSelectedRows(\""+ grid_id  +"\" )' title='Cancelar'>"+
       "</a> | ";
 
-    html += "  <a href='#' onclick='doDeletGrid(\"" + grid_id + "\")' class = 'fa fa-trash-o' "+
+    html += "  <a href='#' onclick='doDeleteGrid(\"" + grid_id + "\")' class = 'fa fa-trash-o' "+
       "title='Deletar selecionados'></a> | ";
-
+   
     html += "  <a href='#' onclick='doPostGrid(\"" + grid_id + "\")' class='glyphicon glyphicon-floppy-disk' "+
       " title='Salvar'></a>";
   };
 
   html += "</div>"
-  $("#" + GridId).html(html);
+  $("#" + DivGridId).html(html);
   
 };
 
 
 function doPostGrid(idGrid){
-  jsgrid = ParseGridToJson(idGrid);
-  $.ajax({
-    url: '/savegrid',    
-    type: 'get', //this is the default though, you don't actually need to always mention it
-    data: jsgrid ,
-//    contentType: 'application/json; charset=utf-8', 
-    success: function(data) {
-        alert(data);
-    },
-    failure: function(data) { 
+  var parent = $('#' + idGrid).attr('parent');
+  var sequence = "";
+  if ((parent != "") && (parent != undefined)){
+    sequence = $('#' + parent).attr('sequence');
+    var link_to_form = $('#' + idGrid).attr('link_to_form');
+    if ((sequence != "") && (sequence != undefined)){
+      $("#" + idGrid + " input[name= '" + link_to_form + "'").each(function(){
+        $(this).attr("value", sequence);
+      });                      
+    }else{
+      sequence = "";
+    };
+  };
+  if(parent != ""){
+    var send_to = $('#ownurl').val();
+    var redirect_to = $('#listurl').val();
+    doPostForm(send_to, parent, "", false, "");    
+  }else{
+    var jsgrid = ParseGridToJson(idGrid);
+    $.ajax({
+      url: '/savegrid',    
+      type: 'get', //this is the default though, you don't actually need to always mention it
+      data: jsgrid ,
+      success: function(data) {
+        var parser = new DOMParser()
+        var doc_received = parser.parseFromString(data, "text/html");
+        var erros = doc_received.getElementById('grid_erros');
+        if(erros != null){
+          alert(erros.value);
+        }else{
+          alert('Dados salvos com sucesso!');
+        }
+      },
+      failure: function(data) { 
         alert('Got an error dude');
-    }
-  });   
-}
+      }
+    });     
+  };
+};
 
-function doDeletGrid(idGrid){
-  jsgrid = ParseGridToJsonDelete(idGrid);
-  $.ajax({
-    url: '/deletegrid',    
-    type: 'get', //this is the default though, you don't actually need to always mention it
-    data: jsgrid ,
-//    contentType: 'application/json; charset=utf-8', 
-    success: function(data) {
-        alert(data);
-        RemoveSelectedRows(idGrid);
-    },
-    failure: function(data) { 
-        alert('Got an error dude');
-    }
-  });   
+function doDeleteGrid(idGrid){
+  var parent = $('#' + idGrid).attr('parent');
+  if (parent === ""){
+    jsgrid = ParseGridToJsonDelete(idGrid);
+    $.ajax({
+      url: '/deletegrid',    
+      type: 'get', //this is the default though, you don't actually need to always mention it
+      data: jsgrid ,
+      success: function(data) {
+          alert(data);
+          RemoveSelectedRows(idGrid);
+      },
+      failure: function(data) { 
+          alert('Got an error dude');
+      }
+    });   
+  }else{
+    var send_to = $('#ownurl').val();
+    var redirect_to = $('#listurl').val();
+    doPostForm(send_to, parent, "", true, idGrid);
+    RemoveSelectedRows(idGrid);
+  };  
 }
 
 // using jQuery
@@ -367,12 +400,21 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
-function doPostForm(send_to, form_id){
+function doPostForm(send_to, form_id, url_redirect, is_delete, id_grid_delete){
   var form = $('#' + form_id);
   var url = send_to;
   var csrftoken = getCookie('csrftoken');
+  var jsgrid = "";
+  if(is_delete === false){ 
+    $('table[parent="' + form_id +'"]').each(function(){
+       jsgrid += JSON.stringify(ParseGridToJson($(this).attr('id'))) + "[[<<ROW_SEPARATOR>>]]";
+    });
+  }else{
+    jsgrid += JSON.stringify(ParseGridToJsonDelete(id_grid_delete)) + "[[<<ROW_SEPARATOR>>]]";
+  };
 
-  /*pqp não entendi nada dessa porra tbm - csrf_token do django*/
+  form.append("<input type='hidden' name='child_models' value='"+ jsgrid +"'></input>");
+
   $.ajaxSetup({
     beforeSend: function(xhr, settings) {
       if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -385,20 +427,41 @@ function doPostForm(send_to, form_id){
     url: url,    
     type: 'post', //this is the default though, you don't actually need to always mention it
     data: form.serialize(),
-    context : form,
-    contentType: 'application/json', 
     success: function(data) {
   
-    var parser = new DOMParser()
-    var doc_received = parser.parseFromString(data, "text/html");
-    var frm_received = doc_received.getElementById(form_id);        
-    var frm = document.getElementById(form_id);
-    frm.innerHTML = frm_received.innerHTML;
-    
+      var parser = new DOMParser()
+      var doc_received = parser.parseFromString(data, "text/html");
+      var frm_received = doc_received.getElementById(form_id); 
+      if (frm_received === null){
+        var erros = doc_received.getElementById("grid_erros");
+        if (erros != null){
+          alert(erros.value);        
+        }else{
+          if (url_redirect != ""){
+            window.location.href = url_redirect;
+          }else{
+            alert('Dados atualizados com sucesso!');
+          };
+        };
+      }else{      
+        var frm = document.getElementById(form_id);
+        if (frm_received.innerHTML === ""){
+          if (url_redirect != ""){
+            window.location.href = url_redirect;
+          }else{
+            alert('Dados atualizados com sucesso!');
+          }
+        }else{
+          frm.innerHTML = frm_received.innerHTML;
+        }    
+      }
     },
     error: function(data) { 
         alert(data.responseText);
     }
   });
   return false;
-}
+};
+
+
+

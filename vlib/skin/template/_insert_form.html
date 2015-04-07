@@ -18,15 +18,14 @@
       <div class="block-content collapse in">
         <div class="span12">
           <form class="form-horizontal" action="" method="post" id="{{form_id}}">{% csrf_token %} 
-            {{ form.as_p }}
-
-            <p>{{grid}}</p>
-            <!-- onclick="doPostForm('{{url_insert}}', '{{form_id}}')" -->
-            <button type="buttom"  class="btn btn-primary">Save changes</button>
-            <button type="reset" class="btn">Cancel</button>          
-
+            {{ form.as_p }}                      
           </form>
-
+            <p> {{grid | safe}} </p>
+            <p><button type="buttom"  onclick="doPostForm('{{url_insert}}', '{{form_id}}', '{{url_list}}', false, '')" 
+            class="btn btn-primary">Save</button>
+            <button type="reset" class="btn">Cancel</button> </p>
+            <input type="hidden" value="{{url_insert}}/" id="ownurl">
+            <input type="hidden" value="{{url_list}}" id="listurl">
         </div>
       </div>
     </div>
